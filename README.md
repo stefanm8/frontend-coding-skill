@@ -2,6 +2,12 @@
 
 Reusable guidance for building, reviewing, and refactoring frontend applications with predictable navigation, editing, and asynchronous behavior.
 
+## Quick install
+
+```sh
+npx skills add stefanm8/frontend-coding-skill
+```
+
 This repository contains one skill and its supporting references. It provides instructions for a coding agent, rather than an application starter or a component library.
 
 ## What it covers
@@ -36,7 +42,7 @@ Start with [SKILL.md](SKILL.md). Load supporting references only when relevant:
 | [UI patterns](references/ui-patterns.md) | Layout, navigation, styling, responsive behavior, and accessibility |
 | [Verification](references/verification.md) | Component tests, workflow scenarios, visual checks, and deployment checks |
 
-## Installation
+## Manual installation
 
 For a local Codex installation using the default skills directory, clone this repository into a folder named `frontend-coding`:
 

@@ -14,7 +14,8 @@ This repository contains one skill and its supporting references. It provides in
 
 - Shared application layouts that support both public and authenticated routes.
 - Clear boundaries between components, stateful hooks, and API transport.
-- Query identity, cache isolation, mutations, drafts, autosave, and streaming.
+- Inline loading, save feedback, and live job status driven by query and mutation hooks.
+- Query identity, automatic refetching, cache isolation, drafts, autosave, and streaming.
 - Accessible interaction, responsive layouts, semantic themes, and complete data views.
 - Proportionate testing, visual verification, code splitting, and static delivery.
 

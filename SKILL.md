@@ -54,7 +54,9 @@ Choose the owner before adding state:
 
 Avoid redundant copies of server or derived data. An editing draft is intentional: define how it is initialized, saved, discarded, and reconciled with refreshed data. Keep render and memoized derivations free of writes, requests, and state setters.
 
-Preserve navigation context and user input. Distinguish loading, refreshing, empty results, errors, and mutation progress. Keep usable content visible during refresh and communicate failures where the user can recover.
+Show routine loading, progress, success, and failure inline in the affected view, row, or control. Avoid loading dialogs, status popups, and toasts for these updates. Keep usable content, focus, and unsaved input in place during refresh. If work can outlive the screen, keep its outcome and recovery action available on return or in an existing activity view. Use a dialog when the user needs to make a decision.
+
+In React, subscribe through resource hooks backed by TanStack Query or the project's existing server-state layer. Render server values and operation status from those hooks while the editor owns unsaved input. Let keyed queries, mutation cache updates, and the API's live-update mechanism keep the screen current without a page reload.
 
 Read only the supporting guidance relevant to the change:
 

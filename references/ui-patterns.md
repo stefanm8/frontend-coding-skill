@@ -55,7 +55,7 @@ Treat imported, stored, and generated HTML as untrusted at HTML rendering bounda
 - Give inputs persistent labels and icon-only controls accessible names. Preserve visible focus and connect field errors to their inputs.
 - Prefer the established library's dialogs, drawers, and menus. Verify initial focus, keyboard operation, Escape dismissal where appropriate, and focus restoration. A styled overlay does not supply dialog behavior.
 - Keep destructive actions distinct from the primary workflow and make their scope clear. Use confirmation or undo according to the consequence; do not add confirmations to routine reversible actions indiscriminately.
-- Announce important asynchronous status changes without announcing every streamed token. Respect reduced-motion preferences for nonessential animation.
+- Keep focus in place during asynchronous updates. For a save or job whose outcome needs announcing, keep a small inline `role="status"` region mounted and update its text on meaningful transitions. Keep background polling and streamed tokens quiet. Respect reduced-motion preferences for nonessential animation. See [WCAG technique ARIA22](https://www.w3.org/WAI/WCAG22/Techniques/aria/ARIA22).
 - Apply the application's locale and timezone policy consistently across text, dates, and library controls.
 
 For dialog semantics and keyboard behavior, consult the [WAI modal dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).

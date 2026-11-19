@@ -56,13 +56,13 @@ Avoid redundant copies of server or derived data. An editing draft is intentiona
 
 Show routine loading, progress, success, and failure inline in the affected view, row, or control. Avoid loading dialogs, status popups, and toasts for these updates. Keep usable content, focus, and unsaved input in place during refresh. If work can outlive the screen, keep its outcome and recovery action available on return or in an existing activity view. Use a dialog when the user needs to make a decision.
 
-In React, subscribe through resource hooks backed by TanStack Query or the project's existing server-state layer. Render server values and operation status from those hooks while the editor owns unsaved input. Let keyed queries, mutation cache updates, and the API's live-update mechanism keep the screen current without a page reload.
+In React, subscribe through resource hooks backed by TanStack Query or the project's existing server-state layer. On navigation and clicks, render usable data for the current query key immediately, including a cached empty result. Reserve skeletons for cold loads. Let mutations and background reads update the mounted view in place.
 
 Read only the supporting guidance relevant to the change:
 
 - For root providers, auth/app layouts, session bootstrap, authorization, or dependency choices, read [Application foundation](references/app-foundation.md).
 - For visual layout, theme, navigation, responsive behavior, tables, or accessibility, read [UI patterns](references/ui-patterns.md).
-- For queries, mutations, forms, autosave, uploads, polling, or streaming, read [Async work and editing](references/async-and-editing.md).
+- For query freshness, cache restoration after a browser reload, mutations, forms, autosave, uploads, polling, or streaming, read [Async work and editing](references/async-and-editing.md).
 - When choosing tests, adding stories, or validating an implementation, read [Verification](references/verification.md).
 
 ## Performance and delivery

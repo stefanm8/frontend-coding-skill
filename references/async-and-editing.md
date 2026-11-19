@@ -9,10 +9,7 @@ For session bootstrap, root providers, and route access, also read [Application 
 - Centralize keys in the resource's service module. Use the same factory for fetching, prefetching, cache updates, and invalidation. Keep list/detail keys distinct and key inputs serializable.
 - Include every input that changes the returned data: account scope, resource ID, filters, sorting, pagination, date range, timezone, and options such as a result limit. Do not put credentials in keys.
 - Normalize inputs once and use those values for both the key and request. Prefer a named parameters object when positional arrays would make omissions or ordering mistakes easy.
-- Enable dependent queries only when required identity and inputs are ready. Pass cancellation signals through supported transport APIs. Reset or isolate cached data when its account or resource scope changes.
-- Set freshness according to the resource. Avoid one long global lifetime for both reference data and rapidly changing workflow state.
-- Keep prior results during a refresh only when they still belong to the current scope and the UI makes their status clear. Do not carry another account's or entity's data into a new context.
-- Treat browser persistence as a deliberate feature. Persist only suitable data, scope it to the account, and define expiry, versioning, and logout cleanup. A provider name does not establish those guarantees.
+- Enable dependent queries once the required identity and inputs are ready. Pass cancellation signals through supported transport APIs. When the scope changes, read the entry for the new key.
 
 For a scoped collection, use the same normalized inputs for the key and the request. This example uses TanStack Query v5.
 
@@ -44,11 +41,19 @@ export function useItems(accountId: string, params: ListParams) {
 }
 ```
 
-When the account or filters change, the hook observes the new key and fetches according to its freshness policy. Avoid a second fetch in `useEffect` or mirroring the result into component state. Keep an editing draft when the user needs to change a value. Use `refetch()` for a retry or user-requested refresh of the current query. See [TanStack Query keys](https://tanstack.com/query/v5/docs/framework/react/guides/query-keys).
+Have route loaders and hooks share the query options and client. On Back, tab changes, or reopening an item, let a cache hit render before awaiting a network read. Let the hook handle key changes without a second fetch in an effect. A click that only changes local UI needs no invalidation. Use `refetch()` for an explicit refresh or retry. [TanStack Query keys](https://tanstack.com/query/v5/docs/framework/react/guides/query-keys).
 
 For adjacent pages, prefetch with the same key factory. If keeping rows visible during a page turn helps, use `placeholderData` only when the account, filters, sort, and other scope inputs still match. Use `isPlaceholderData` to mark the transition and guard actions that require the new page. See [Paginated queries](https://tanstack.com/query/v5/docs/framework/react/guides/paginated-queries).
 
-Choose how the view learns about external changes. For ordinary reads, configure `staleTime` for the resource and use stale-query refetch on mount, focus, or reconnect as appropriate. To discover work started elsewhere while the page stays open, subscribe to collection events or poll the visible collection even when it has no active jobs. See [TanStack Query defaults](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults).
+Choose `staleTime` from how long the resource can be shown as fresh. Size v5 `gcTime` for the expected time away from an inactive view and the cost of keeping it in memory. Becoming stale makes a query eligible for a background read on mount, focus, reconnect, or another configured trigger. If changes must appear while a view stays open and idle, subscribe to server events or poll at a cadence the resource warrants. A collection tracking work started elsewhere needs a way to discover the first new job even when the list is empty. [TanStack Query defaults](https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults).
+
+## Restoring queries after a browser reload
+
+A full reload creates a new in-memory client. When a view should reopen with cached content, allowlist successful reads whose size, sensitivity, and acceptable age suit browser storage. Keep credentials, sensitive payloads, and unrelated mutations out of the snapshot. Choose storage for the intended lifetime, such as `sessionStorage` for same-tab reloads. Bound the snapshot size by limiting the resources and pages retained.
+
+With the v5 persistence plugin, set a finite snapshot `maxAge`, give hydrated queries a `gcTime` at least that long, and use a schema `buster` for incompatible changes. Preserve each query's `dataUpdatedAt` for freshness checks and any limit on the age of an individual result. Scope the storage key to the verified user and tenant for private reads. On logout or identity change, stop the previous persister, remove its snapshot, and isolate its in-memory data.
+
+Coordinate restoration and fetching with `PersistQueryClientProvider` or the project's equivalent. Route loaders that fetch independently must also wait for identity and restoration. Render eligible restored data as soon as it is available and let stale reads refresh in the background. If storage is unavailable or the snapshot is expired or incompatible, use the ordinary cold-load path. [TanStack Query persistence](https://tanstack.com/query/v5/docs/framework/react/plugins/persistQueryClient).
 
 ## Feedback and mutations
 
@@ -57,11 +62,11 @@ Resolve requests only when HTTP status and the expected response shape satisfy t
 | Situation | What the user sees |
 | --- | --- |
 | Query waiting for required input | Prompt for the missing selection. In v5 an idle, disabled query can be pending before any request starts. |
-| First request in flight | A skeleton or loading label in the region being fetched. In v5, `isLoading` means pending and fetching. |
-| Background fetch with usable data | Keep the list or detail mounted. Show a refreshing indicator only for a refresh the user requested, tracked around the `refetch()` call, because `isRefetching` is also true during polls and focus or reconnect refetches. Keep routine polls silent. |
+| Fetch in flight without usable data | Show a skeleton or loading label only in the affected region. In v5, `isLoading` means pending and fetching. |
+| Background fetch with usable data | Render the cached result, including an empty list. Using `isFetching` to gate content would replace it on every refetch. Give explicit refresh clicks local feedback around `refetch()` and keep automatic refreshes quiet. |
 | Empty success | Explain the empty state and offer a relevant next action |
 | First fetch fails without data (`isLoadingError`) | Show the error and retry action in the affected region. |
-| Refresh fails with usable data (`isRefetchError`) | Keep the rows, focused control, and draft mounted. Place a freshness warning and retry beside the content. |
+| Refresh fails with usable data (`isRefetchError`) | For a recoverable read error, keep the last result, focus, and draft mounted. Show a freshness warning and retry beside the content. Honor session expiry or revoked access through the access guard. |
 | Mutation pending | Show “Saving…” on the affected form or row and keep unrelated actions usable. Guard duplicate submissions in the submit handler. When the focused control must remain reachable, keep it mounted and expose `aria-disabled` while guarded. |
 | Mutation failure | Keep the draft and show the error beside the action with a safe recovery path. |
 | Mutation success | Show the confirmed change in place. A quiet “Saved” beside the editor helps when the result would otherwise be invisible. |
